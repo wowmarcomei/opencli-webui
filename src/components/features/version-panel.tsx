@@ -88,7 +88,7 @@ export function VersionPanel() {
       {/* Node 版本不支持警告 */}
       {node && !node.supported && (
         <div className="text-[11px] px-2 py-1 rounded bg-destructive/10 text-destructive border border-destructive/20">
-          Node.js v{node.version} 不支持，请升级到 v20.0.0 及以上版本
+          Node.js v{node.version} 不支持，请升级到 v21.0.0 及以上版本
         </div>
       )}
 

@@ -40,7 +40,7 @@ async function getCurrentCliVersion(): Promise<string | null> {
 function getNodeVersion(): { version: string; supported: boolean } {
   const version = process.version.replace(/^v/, "");
   const major = parseInt(version.split(".")[0], 10);
-  return { version, supported: major >= 20 };
+  return { version, supported: major >= 21 };
 }
 
 export async function GET() {

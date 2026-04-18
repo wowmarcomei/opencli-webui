@@ -64,22 +64,29 @@ export function setInstallStatus(s: InstallStatus) {
 }
 
 export interface CliCommand {
+  command: string;
   site: string;
   name: string;
-  description?: string;
-  strategy?: string;
-  args?: ArgDef[];
-  columns?: string[];
+  aliases: string[];
+  description: string;
+  strategy: string;
+  browser: boolean;
+  args: ArgDef[];
+  columns: string[];
+  domain: string | null;
+  deprecated: boolean | string | null;
+  replacedBy: string | null;
 }
 
 export interface ArgDef {
   name: string;
-  type: "str" | "int" | "bool" | "float";
-  default?: unknown;
-  required?: boolean;
-  positional?: boolean;
-  choices?: string[];
-  help?: string;
+  type: string;
+  required: boolean;
+  valueRequired: boolean;
+  positional: boolean;
+  choices: string[];
+  default: unknown;
+  help: string;
 }
 
 export async function listCommands(): Promise<CliCommand[]> {
