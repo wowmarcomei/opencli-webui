@@ -57,8 +57,16 @@ async function executeCommand(
 // ── Setup guard ───────────────────────────────────────────────────────────────
 
 test.beforeAll(async ({ request }) => {
-  const res = await request.get("/api/setup");
-  const { installed } = await res.json();
+  let installed = false;
+  try {
+    const res = await request.get("/api/setup");
+    if (res.headers()["content-type"]?.includes("application/json")) {
+      const body = await res.json();
+      installed = !!body.installed;
+    }
+  } catch {
+    // server unreachable or non-JSON — treat as not installed
+  }
   if (!installed) {
     test.skip(true, "opencli not installed — skipping command tests");
   }

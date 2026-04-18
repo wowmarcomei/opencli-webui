@@ -8,7 +8,7 @@ export default defineConfig({
   retries: 0,
   reporter: "list",
   use: {
-    baseURL: "http://localhost:3002",
+    baseURL: "http://localhost:3099",
     channel: "chrome",
     headless: true,
   },
@@ -19,9 +19,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "pnpm dev",
-    url: "http://localhost:3002",
-    reuseExistingServer: true,
-    timeout: 30_000,
+    command: "next dev -p 3099",
+    url: "http://localhost:3099",
+    reuseExistingServer: false,
+    timeout: 60_000,
+    env: { PORT: "3099" },
   },
 });
