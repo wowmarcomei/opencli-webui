@@ -30,7 +30,10 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
-    checkSetup();
+    const timer = window.setTimeout(() => {
+      void checkSetup();
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   useEffect(() => {

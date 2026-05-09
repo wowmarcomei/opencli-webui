@@ -1,4 +1,4 @@
-import { spawn } from "child_process";
+import { spawnOpencli } from "@/lib/process-runner";
 
 export async function GET() {
   const encoder = new TextEncoder();
@@ -8,7 +8,7 @@ export async function GET() {
       const send = (event: string, data: unknown) =>
         controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
 
-      const proc = spawn("opencli", ["doctor"], { stdio: ["ignore", "pipe", "pipe"] });
+      const proc = spawnOpencli(["doctor"], { stdio: ["ignore", "pipe", "pipe"] });
 
       proc.stdout.on("data", (chunk: Buffer) => {
         const text = chunk.toString();
@@ -29,6 +29,9 @@ export async function GET() {
           } else if (trimmed.startsWith("[WARN]")) {
             status = "warn";
             label = trimmed.slice(6).trim();
+          } else if (trimmed.startsWith("[MISSING]")) {
+            status = "warn";
+            label = trimmed.slice(9).trim();
           }
 
           send("line", { status, label, raw: trimmed });

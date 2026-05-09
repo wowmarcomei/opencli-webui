@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   detectOpencli,
   installOpencli,
@@ -20,7 +20,7 @@ export async function GET() {
 }
 
 // POST /api/setup — trigger installation
-export async function POST(_req: NextRequest) {
+export async function POST() {
   const current = getInstallStatus();
   if (current.status === "installing") {
     return NextResponse.json({ message: "Already installing" }, { status: 409 });

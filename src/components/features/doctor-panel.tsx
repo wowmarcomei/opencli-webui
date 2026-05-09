@@ -9,6 +9,19 @@ interface DiagLine {
   raw: string;
 }
 
+interface BrowserProfile {
+  contextId: string;
+  alias?: string;
+  extensionVersion?: string;
+  isDefault: boolean;
+}
+
+interface ProfileState {
+  defaultContextId: string | null;
+  disconnectedDefault: string | null;
+  profiles: BrowserProfile[];
+}
+
 const DOT: Record<DiagLine["status"], string> = {
   ok:   "bg-green-500",
   fail: "bg-red-500 animate-pulse",
@@ -49,12 +62,21 @@ async function fetchDoctor(onLine: (l: DiagLine) => void, onDone: () => void) {
   }
 }
 
+async function fetchProfiles(): Promise<ProfileState> {
+  const res = await fetch("/api/profiles");
+  if (!res.ok) throw new Error("加载 Profile 失败");
+  return res.json();
+}
+
 export function DoctorPanel() {
   const [lines, setLines] = useState<DiagLine[]>([]);
   const [running, setRunning] = useState(false);
+  const [profileState, setProfileState] = useState<ProfileState | null>(null);
+  const [savingProfile, setSavingProfile] = useState(false);
   const runningRef = useRef(false);
 
   const diagLines = lines.filter((l) => l.status !== "info");
+  const selectedProfile = profileState?.profiles.find((profile) => profile.isDefault)?.contextId ?? "";
 
   async function run() {
     if (runningRef.current) return;
@@ -73,7 +95,35 @@ export function DoctorPanel() {
     }
   }
 
-  useEffect(() => { run(); }, []);
+  async function refreshProfiles() {
+    try {
+      setProfileState(await fetchProfiles());
+    } catch {
+      setProfileState(null);
+    }
+  }
+
+  async function selectProfile(contextId: string) {
+    if (!contextId) return;
+    setSavingProfile(true);
+    try {
+      const res = await fetch("/api/profiles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contextId }),
+      });
+      if (!res.ok) throw new Error("切换 Profile 失败");
+      setProfileState(await res.json());
+      await run();
+    } finally {
+      setSavingProfile(false);
+    }
+  }
+
+  useEffect(() => {
+    run();
+    refreshProfiles();
+  }, []);
 
   return (
     <div className="flex items-center gap-2">
@@ -89,6 +139,29 @@ export function DoctorPanel() {
             ))
         }
       </div>
+
+      {profileState && profileState.profiles.length > 0 && (
+        <div className="flex items-center gap-1.5">
+          <span className="text-xs text-muted-foreground">Profile</span>
+          <select
+            value={selectedProfile}
+            disabled={savingProfile}
+            onChange={(event) => selectProfile(event.target.value)}
+            className="h-6 max-w-40 rounded border border-input bg-background px-1.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-ring"
+            title="选择 OpenCLI 浏览器 Profile"
+          >
+            <option value="" disabled>
+              {profileState.disconnectedDefault ? `未连接 ${profileState.disconnectedDefault}` : "选择"}
+            </option>
+            {profileState.profiles.map((profile) => (
+              <option key={profile.contextId} value={profile.contextId}>
+                {profile.alias ?? profile.contextId}
+                {profile.extensionVersion ? ` v${profile.extensionVersion}` : ""}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* 刷新按钮 */}
       <Button

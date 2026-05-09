@@ -1,7 +1,4 @@
-import { execFile, spawn } from "child_process";
-import { promisify } from "util";
-
-const execFileAsync = promisify(execFile);
+import { execOpencli, getOpencliPath, spawnNpm, spawnOpencli } from "@/lib/process-runner";
 
 export type InstallStatus = "installed" | "installing" | "not_installed" | "error";
 
@@ -10,16 +7,10 @@ let installLog: string[] = [];
 
 export async function detectOpencli(): Promise<{ installed: boolean; version?: string; path?: string }> {
   try {
-    const { stdout } = await execFileAsync("opencli", ["--version"], { timeout: 5000 });
-    return { installed: true, version: stdout.trim(), path: "opencli" };
+    const { stdout } = await execOpencli(["--version"], { timeout: 5000 });
+    return { installed: true, version: stdout.trim(), path: getOpencliPath() };
   } catch {
-    // Try npx path
-    try {
-      const { stdout } = await execFileAsync("npx", ["--yes", "@jackwener/opencli", "--version"], { timeout: 10000 });
-      return { installed: false, version: stdout.trim() };
-    } catch {
-      return { installed: false };
-    }
+    return { installed: false };
   }
 }
 
@@ -28,7 +19,7 @@ export async function installOpencli(): Promise<void> {
   installLog = [];
 
   return new Promise((resolve, reject) => {
-    const proc = spawn("npm", ["install", "-g", "@jackwener/opencli"], {
+    const proc = spawnNpm(["install", "-g", "@jackwener/opencli"], {
       stdio: ["ignore", "pipe", "pipe"],
     });
 
@@ -90,7 +81,7 @@ export interface ArgDef {
 }
 
 export async function listCommands(): Promise<CliCommand[]> {
-  const { stdout } = await execFileAsync("opencli", ["list", "-f", "json"], {
+  const { stdout } = await execOpencli(["list", "-f", "json"], {
     timeout: 30000,
   });
   const raw = JSON.parse(stdout.trim());
@@ -118,5 +109,5 @@ export function executeCommand(opts: ExecuteOptions) {
   }
   argv.push("-f", format);
 
-  return spawn("opencli", argv, { stdio: ["ignore", "pipe", "pipe"] });
+  return spawnOpencli(argv, { stdio: ["ignore", "pipe", "pipe"] });
 }

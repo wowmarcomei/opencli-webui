@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import { execFile, spawn } from "child_process";
-import { promisify } from "util";
-
-const execFileAsync = promisify(execFile);
+import { execOpencli, spawnNpm } from "@/lib/process-runner";
 
 const GITHUB_REPO = "jackwener/opencli";
 
@@ -30,7 +27,7 @@ async function getLatestRelease(): Promise<GithubRelease | null> {
 
 async function getCurrentCliVersion(): Promise<string | null> {
   try {
-    const { stdout } = await execFileAsync("opencli", ["--version"], { timeout: 5000 });
+    const { stdout } = await execOpencli(["--version"], { timeout: 5000 });
     return stdout.trim();
   } catch {
     return null;
@@ -81,7 +78,7 @@ export async function POST(req: Request) {
       const send = (event: string, data: unknown) =>
         controller.enqueue(encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`));
 
-      const proc = spawn("npm", ["install", "-g", "@jackwener/opencli"], {
+      const proc = spawnNpm(["install", "-g", "@jackwener/opencli"], {
         stdio: ["ignore", "pipe", "pipe"],
       });
 
