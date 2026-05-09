@@ -5,7 +5,7 @@ import {
   attachPublicBridge,
   createBridgeState,
   handlePublicBridgeHttp,
-  startLocalDaemon,
+  startLocalDaemonWithFallback,
 } from "./server/remote-bridge.mjs";
 
 const prod = process.argv.includes("--prod") || process.env.NODE_ENV === "production";
@@ -42,9 +42,14 @@ attachPublicBridge({
 });
 
 try {
-  await startLocalDaemon({ bridge, port: daemonPort });
-  console.log(`> OpenCLI remote bridge daemon listening on http://127.0.0.1:${daemonPort}`);
+  const daemon = await startLocalDaemonWithFallback({ bridge, requestedPort: daemonPort });
+  process.env.OPENCLI_DAEMON_PORT = String(daemon.port);
+  console.log(`> OpenCLI remote bridge daemon listening on http://127.0.0.1:${daemon.port}`);
+  if (daemon.port !== daemonPort) {
+    console.warn(`> Port ${daemonPort} was occupied; using ${daemon.port} for OpenCLI WebUI child processes.`);
+  }
 } catch (err) {
+  process.env.OPENCLI_DAEMON_PORT = String(daemonPort);
   console.warn(`> OpenCLI remote bridge daemon could not bind 127.0.0.1:${daemonPort}`);
   console.warn(`> ${err instanceof Error ? err.message : String(err)}`);
 }

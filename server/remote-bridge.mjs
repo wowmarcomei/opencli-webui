@@ -389,3 +389,26 @@ export function startLocalDaemon({ bridge, port, host = "127.0.0.1" }) {
     });
   });
 }
+
+export async function startLocalDaemonWithFallback({
+  bridge,
+  requestedPort,
+  host = "127.0.0.1",
+  maxAttempts = 10,
+  start = startLocalDaemon,
+}) {
+  let lastError = null;
+
+  for (let offset = 0; offset < maxAttempts; offset++) {
+    const port = requestedPort + offset;
+    try {
+      const server = await start({ bridge, port, host });
+      return { server, port };
+    } catch (err) {
+      lastError = err;
+      if (err?.code !== "EADDRINUSE") throw err;
+    }
+  }
+
+  throw lastError ?? new Error("No daemon port could be bound");
+}

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { WebSocket } from "ws";
-import { createBridgeState } from "../server/remote-bridge.mjs";
+import { createBridgeState, startLocalDaemonWithFallback } from "../server/remote-bridge.mjs";
 
 class FakeSocket {
   readyState = WebSocket.OPEN;
@@ -65,5 +65,44 @@ test("bridge rejects commands when requested profile is disconnected", async () 
   await assert.rejects(
     () => bridge.sendCommand({ id: "cmd-2", action: "tabs", contextId: "missing" }),
     /Browser profile "missing" is not connected/,
+  );
+});
+
+test("daemon startup falls back to the next port when the default port is occupied", async () => {
+  const attempted = [];
+  const bridge = createBridgeState({ token: "secret", packageVersion: "1.7.14" });
+
+  const result = await startLocalDaemonWithFallback({
+    bridge,
+    requestedPort: 19825,
+    maxAttempts: 3,
+    start: async ({ port }) => {
+      attempted.push(port);
+      if (port === 19825) {
+        const err = new Error("address in use");
+        err.code = "EADDRINUSE";
+        throw err;
+      }
+      return { close() {} };
+    },
+  });
+
+  assert.deepEqual(attempted, [19825, 19826]);
+  assert.equal(result.port, 19826);
+});
+
+test("daemon startup does not hide non-port-conflict errors", async () => {
+  const bridge = createBridgeState({ token: "secret", packageVersion: "1.7.14" });
+
+  await assert.rejects(
+    () => startLocalDaemonWithFallback({
+      bridge,
+      requestedPort: 19825,
+      maxAttempts: 3,
+      start: async () => {
+        throw new Error("permission denied");
+      },
+    }),
+    /permission denied/,
   );
 });
