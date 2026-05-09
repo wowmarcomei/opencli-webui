@@ -1,3 +1,7 @@
+onlyBuiltDependencies:
+  - '@jackwener/opencli'
+  - esbuild
+  - msw
 ignoredBuiltDependencies:
   - sharp
   - unrs-resolver

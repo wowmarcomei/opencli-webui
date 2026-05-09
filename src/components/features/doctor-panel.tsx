@@ -19,6 +19,9 @@ interface BrowserProfile {
 interface ProfileState {
   defaultContextId: string | null;
   disconnectedDefault: string | null;
+  daemonRunning: boolean;
+  profileRequired: boolean;
+  profileDisconnected: boolean;
   profiles: BrowserProfile[];
 }
 
@@ -140,26 +143,32 @@ export function DoctorPanel() {
         }
       </div>
 
-      {profileState && profileState.profiles.length > 0 && (
+      {profileState && (
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-muted-foreground">Profile</span>
-          <select
-            value={selectedProfile}
-            disabled={savingProfile}
-            onChange={(event) => selectProfile(event.target.value)}
-            className="h-6 max-w-40 rounded border border-input bg-background px-1.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-ring"
-            title="选择 OpenCLI 浏览器 Profile"
-          >
-            <option value="" disabled>
-              {profileState.disconnectedDefault ? `未连接 ${profileState.disconnectedDefault}` : "选择"}
-            </option>
-            {profileState.profiles.map((profile) => (
-              <option key={profile.contextId} value={profile.contextId}>
-                {profile.alias ?? profile.contextId}
-                {profile.extensionVersion ? ` v${profile.extensionVersion}` : ""}
+          {profileState.profiles.length > 0 ? (
+            <select
+              value={selectedProfile}
+              disabled={savingProfile}
+              onChange={(event) => selectProfile(event.target.value)}
+              className="h-6 max-w-40 rounded border border-input bg-background px-1.5 text-[11px] focus:outline-none focus:ring-1 focus:ring-ring"
+              title="选择 OpenCLI 浏览器 Profile"
+            >
+              <option value="" disabled>
+                {profileState.disconnectedDefault ? `未连接 ${profileState.disconnectedDefault}` : "选择"}
               </option>
-            ))}
-          </select>
+              {profileState.profiles.map((profile) => (
+                <option key={profile.contextId} value={profile.contextId}>
+                  {profile.alias ?? profile.contextId}
+                  {profile.extensionVersion ? ` v${profile.extensionVersion}` : ""}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <span className="h-6 rounded border border-input bg-muted px-1.5 text-[11px] leading-6 text-muted-foreground">
+              未连接
+            </span>
+          )}
         </div>
       )}
 

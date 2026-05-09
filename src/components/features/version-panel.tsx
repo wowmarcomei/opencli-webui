@@ -80,8 +80,8 @@ export function VersionPanel() {
   }
 
   const cli = data?.cli;
-  const ext = data?.extension;
   const node = data?.node;
+  const bridgeUrl = typeof window !== "undefined" ? window.location.origin : "";
 
   return (
     <div className="space-y-2">
@@ -138,9 +138,9 @@ export function VersionPanel() {
 
         {/* 扩展 */}
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-muted-foreground">浏览器扩展</span>
-          {!isLoading && ext?.latest && (
-            <Badge variant="outline" className="text-[10px] font-mono h-5">v{ext.latest}</Badge>
+          <span className="text-xs text-muted-foreground">远端浏览器插件</span>
+          {!isLoading && (
+            <Badge variant="outline" className="text-[10px] font-mono h-5">Remote</Badge>
           )}
           <Button size="sm" variant="outline" className="h-6 text-xs px-2" onClick={() => setExtDialog(true)}>
             安装
@@ -166,45 +166,41 @@ export function VersionPanel() {
             <DialogTitle>安装浏览器扩展</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 text-sm">
-            {/* Chrome 商店 */}
             <div className="rounded-lg border p-3 space-y-1.5">
               <div className="flex items-center justify-between">
-                <span className="font-medium text-sm">Chrome 应用商店</span>
-                <Badge variant="secondary" className="text-[10px]">待上架</Badge>
+                <span className="font-medium text-sm">远端连接信息</span>
+                <Badge variant="secondary" className="text-[10px]">WebUI</Badge>
               </div>
-              <p className="text-xs text-muted-foreground">扩展尚未发布至 Chrome Web Store，敬请期待。</p>
-              <Button size="sm" variant="outline" className="w-full" disabled>
-                前往 Chrome 商店
-              </Button>
+              <div className="rounded bg-muted px-2 py-1.5 font-mono text-xs break-all">{bridgeUrl}</div>
+              <p className="text-xs text-muted-foreground">
+                插件弹窗里填写这个 WebUI URL；如果服务器设置了 OPENCLI_BRIDGE_TOKEN，也需要填写同一个 Token。
+              </p>
             </div>
 
-            {/* 下载 ZIP */}
             <div className="rounded-lg border p-3 space-y-1.5">
-              <span className="font-medium text-sm">下载安装包（推荐）</span>
+              <span className="font-medium text-sm">下载安装包</span>
               <p className="text-xs text-muted-foreground">
-                下载 zip 解压后，在 Chrome 以开发者模式加载。
+                下载 zip 解压后，在 Chrome 以开发者模式加载。用户本机不需要安装 opencli。
               </p>
               <div className="flex gap-2">
-                {ext?.downloadUrl && (
-                  <a href={ext.downloadUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                    <Button size="sm" className="w-full">下载 ZIP</Button>
-                  </a>
-                )}
+                <a href="/opencli-remote-extension.zip" target="_blank" rel="noopener noreferrer" className="flex-1">
+                  <Button size="sm" className="w-full">下载 ZIP</Button>
+                </a>
                 <a href="chrome://extensions" target="_blank" rel="noopener noreferrer" className="flex-1">
                   <Button size="sm" variant="outline" className="w-full">打开扩展页</Button>
                 </a>
               </div>
             </div>
 
-            {/* 手动步骤 */}
             <div className="rounded-lg border p-3 space-y-1.5">
               <span className="font-medium text-sm">手动安装步骤</span>
               <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
-                <li>下载并解压 <code className="font-mono bg-muted px-1 rounded">opencli-extension.zip</code></li>
+                <li>下载并解压 <code className="font-mono bg-muted px-1 rounded">opencli-remote-extension.zip</code></li>
                 <li>打开 Chrome，地址栏输入 <code className="font-mono bg-muted px-1 rounded">chrome://extensions</code></li>
                 <li>开启右上角「开发者模式」</li>
                 <li>点击「加载已解压的扩展程序」，选择解压后的文件夹</li>
-                <li>确认扩展已启用，运行 <code className="font-mono bg-muted px-1 rounded">opencli doctor</code> 验证</li>
+                <li>打开插件弹窗，填写 WebUI URL 和 Token，点击 Save</li>
+                <li>回到 WebUI 刷新诊断，确认 Profile 出现在页面上</li>
               </ol>
             </div>
           </div>

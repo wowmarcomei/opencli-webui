@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "OpenCLI Remote Bridge",
+  "version": "1.0.7",
+  "description": "Browser automation bridge for OpenCLI WebUI. Connects this Chrome profile to a remote OpenCLI server.",
+  "permissions": [
+    "debugger",
+    "tabs",
+    "cookies",
+    "activeTab",
+    "alarms",
+    "storage",
+    "tabGroups"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "dist/background.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "OpenCLI",
+    "default_popup": "popup.html"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'; connect-src http://* https://* ws://* wss://*"
+  },
+  "homepage_url": "https://github.com/xjh1994/opencli-webui"
+}
